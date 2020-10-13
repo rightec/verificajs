@@ -1,130 +1,114 @@
-function buildBeforeBegin(uniqueId, refTag, tag)
+function gestisciClick(e)
 {
-  //General function to build an HTML element using insertAdjacentElement("beforebegin")
-  let div=document.createElement(tag);
-  
-  div.id=uniqueId;
-  
-  refTag.insertAdjacentElement("beforebegin", div);
+  console.log(e);
+  if (e.type === "click"){
+    console.log(e.target.nodeName);
+    let targetId= e.target.nodeName.substring(0, 2);
+    if(targetId=="TD"){
 
-  return(div);
-}
-
-function buildBeforeEnd(uniqueId, refTag, tag)
-{
-  //General function to build an HTML element using insertAdjacentElement("beforeend")
-  let div=document.createElement(tag);
-  
-  div.id=uniqueId;
-  
-  refTag.insertAdjacentElement("beforeend", div);
-
-  return(div);
-}
-
-function buildAfterBegin(uniqueId, refTag, tag)
-{
-  //General function to build an HTML element using insertAdjacentElement("afterbegin")
-  let div=document.createElement(tag);
-  
-  div.id=uniqueId;
-  
-  refTag.insertAdjacentElement("afterbegin", div);
-
-  return(div);
-}
-
-function buildAfterEnd(uniqueId, refTag, tag)
-{
-  //General function to build an HTML element using insertAdjacentElement("afterend")
-  let div=document.createElement(tag);
-  
-  div.id=uniqueId;
-  
-  refTag.insertAdjacentElement("afterend", div);
-
-  return(div);
-}
-
-function cleanContainer(){
-  let pContainer = document.getElementById("textId");
-  if (pContainer!=null){
-    pContainer.innerHTML="";
+      if (e.target.classList.contains("backGray")){
+        e.target.className="backRed";
+        if (e.target.classList.contains("backRed")){
+          console.log("Set to red");
+        }
+      }else{
+        e.target.className="backGray";
+        if (e.target.classList.contains("backGray")){
+          console.log("Set to Gray");
+        }
+      }
+     
+      console.log("click on TD");
+    }
+    else{
+      console.log("Non hai fatto click su un TD")
+    }  
   }else{
-    alert("Container not found");
+    console.log("it is not a click");
   }
 }
 
-function changeContainer(){
-  let pContainer = document.getElementById("textId");
-  let temptext = "";
 
-  if (pContainer!=null){
-    switch (iCurrentBook){
-      case 0:
-        iCurrentBook = 1;
-        break;
-      case 1:
-        iCurrentBook = 2;
-        break;
-      case 2:
-        iCurrentBook = 0;
-        break;
-      default:
-        alert("DEFAULT???");
-        break;
-    }
 
-    temptext = aBooks[iCurrentBook].Text;
-    pContainer.innerHTML="";
-    pContainer.innerHTML=temptext;
-  }else{
-    alert("Container not found");
-  }
-}
+//set the path to download json file
+let path="https://my-json-server.typicode.com/typicode/demo/db";
 
-let dBody=null;//Body
-let dMainFrame= null; //MainFrame - son of body
-let dHeaderFrame= null; //Son of mainFrame
-let dHeadCleanBtn= null; //Button son of header frame
-let dHeadChangeBtn= null; //Button son of header frame
-let dContainerFrame=null; //Contain the text
-let aHeadButtons=[null,null]; //array of button
-let pText=null; //text Container
-let iCurrentBook=0;   //current book index
+//Execute the fetch
+fetch(path)
+.then(function(response)
+{
+  //As soon as the server answers, we verify the response
+  console.log("response.ok: "+response.ok);
+  console.log("response.redirected: "+response.redirected);
+  console.log("response.status: "+response.status);
+  console.log("response.statusText: "+response.statusText);
+  console.log("response.type: "+response.type);
+  console.log("response.url: "+response.url);
 
-//Create MainFrame
-dBody=document.querySelector("body");
-dBody.classList.add("backGray");
-dMainFrame = buildAfterBegin("frameId",dBody,"div");
-dMainFrame.classList.add("backWhite");
-
-//Create header
-dHeaderFrame = buildAfterBegin("headFrameId",dMainFrame,"div");
-dHeaderFrame.classList.add("backBlue");
-
-//Create Buttons
-for (let i=0;i<aHeadButtons.length;i++){
-  let tempButtonId="headButtonId_"+i;
-  aHeadButtons[i]=buildAfterBegin(tempButtonId,dHeaderFrame,"button");
-  aHeadButtons[i].classList.add("inLineBlock");
-  aHeadButtons[i].classList.add("genButtons");
-  aHeadButtons[i].textContent = aHButtonText[i];
-}
-
-aHeadButtons[0].onclick=function(event)
-    {
-      cleanContainer();
-    }
-  aHeadButtons[1].onclick=function(event)
+  if(response.ok)
   {
-    changeContainer();
+    //if answer is ok get the json data
+    let jsonPromise=response.json();
+    console.log("Get the data with jsonPromise: "+jsonPromise);
+    //Return the promise object to chain the fetch with another promise
+    return jsonPromise;
+  }else{
+    alert("Error in fetching data");
+  }
+})
+.then(function(jsonObject)
+{
+  //Il contenuto remoto.
+  console.log("JSON.stringify(jsonObject): "+JSON.stringify(jsonObject));
+  
+  buildTables(jsonObject.posts)
+  buildTables(jsonObject.comments)
+})
+.catch(function(error)
+{
+  console.log("error is : "+error);
+});
+
+function buildTables(jsonObject)
+{
+  //console.log(jsonObject.posts); //just to show in console for debug
+
+  //Create table
+  let table=document.createElement('table');
+  document.body.append(table);
+
+  let tr=document.createElement("tr");
+  table.append(tr);
+
+  let myyRefHeder = jsonObject[0];
+  //console.log( jsonObject.posts[0]);
+
+  //Create Header
+  for (currentProp in myyRefHeder){    
+    console.log ("create current prop in header" +currentProp);
+    let thTable=document.createElement('th');
+    thTable.classList.add("backGreen");
+    thTable.innerHTML=`${currentProp}`;
+    tr.append(thTable);        
   }
 
-//Create Container
-dContainerFrame=buildAfterEnd("containerId",dHeaderFrame,"div");
-dContainerFrame.classList.add("backRed");
+  for(currentObject of jsonObject)
+  {
+    let trn=document.createElement("tr");
+    table.append(trn);
+    for(currentProperty in currentObject)
+    {
+      //console.log ("create current prop " +currentProperty);      
 
-pText=buildBeforeEnd("textId",dContainerFrame,"p");
-pText.classList.add("backgreen");
-pText.textContent = aBooks[iCurrentBook].Text;
+      let td=document.createElement("td");
+      td.classList.add("backGray");
+      td.innerHTML=`${currentObject[currentProperty]}`;
+      td.addEventListener("click", gestisciClick);
+     
+      trn.append(td);
+    }
+    
+  }
+
+}
+
